@@ -1,0 +1,40 @@
+# See more info: https://developer.hashicorp.com/vagrant/docs
+
+Vagrant.configure("2") do |config|
+    config.vm.define "web" do |web|
+        web.vm.box = "spox/ubuntu-arm" # Change box name
+        web.vm.hostname = "web"
+        web.vm.network "private_network", ip: "192.168.56.11"  # Change ip
+        web.vm.network "public_network"
+
+        web.vm.synced_folder ".", "/opt/shared/" # File sharing folder with host machine
+
+        web.vm.provider "virtualbox" do |vb| 
+            #   vb.gui = true # Display the VirtualBox GUI when booting the machine
+      
+            vb.memory = "1024" # Customize the amount of memory on the VM:
+        end
+
+        web.vm.provision "shell", inline: <<-SHELL # Provisioning. This shell may run only once the vm is setup for the first time
+            apt-get update
+            yum install wget httpd unzip -y
+        SHELL
+    end
+
+    # If need Multi machines
+    config.vm.define "wordpress" do |wp|
+        wp.vm.box = "spox/ubuntu-arm"
+        wp.vm.hostname = "wp"
+        wp.vm.network "private_network",  ip: "192.168.56.12"
+    end
+
+
+    config.vm.define "db" do |db|
+        db.vm.box = "bandit145/centos_stream9_arm"
+        db.vm.hostname = "db"
+        db.vm.network "private_network",  ip: "192.168.56.13"
+        db.vm.provision "shell", inline: <<-SHELL
+            yum install -y mariadb
+        SHELL
+    end
+end
